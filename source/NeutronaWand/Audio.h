@@ -740,6 +740,12 @@ bool setupAudioDevice() {
   // Allow time for hello command and other data to return back.
   delay(350);
 
+  buildMusicCount((uint16_t) audio.getNumTracks());
+  AUDIO_DEVICE = A_WAV_TRIGGER;
+  i_wand_sound_level = 1; // This gets subtracted from certain sound volume levels.
+
+  return true;
+
   if(audio.getVersion(gVersion)) {
     // We found a WAV Trigger. Build the music track count.
     if(audio.gpstarAudioHello()) {
