@@ -25,7 +25,6 @@
 
 // 3rd-Party Libraries
 #include <millisDelay.h>
-#include <FastLED.h>
 #include <ezButton.h>
 #include <ht16k33.h>
 #include <Wire.h>
@@ -36,7 +35,6 @@
 #include "Communication.h"
 #include "Header.h"
 #include "Bargraph.h"
-#include "Colours.h"
 #include "Serial.h"
 #include "System.h"
 
@@ -51,9 +49,6 @@ void setup() {
   // Boot into proton mode (default for pack and wand).
   STREAM_MODE = PROTON;
 
-  // Set a default animation for the radiation indicator.
-  RAD_LENS_IDLE = AMBER_PULSE;
-
   if(!b_wait_for_pack) {
     // If not waiting for the pack set power level to 5.
     POWER_LEVEL = LEVEL_5;
@@ -66,14 +61,6 @@ void setup() {
   // Begin at menu level one. This affects the behavior of the rotary dial.
   MENU_LEVEL = MENU_1;
 
-  // RGB LEDs for effects (upper/lower) and user status (top).
-  FastLED.addLeds<NEOPIXEL, DEVICE_LED_PIN>(device_leds, DEVICE_NUM_LEDS);
-
-  // Set all LEDs as off (black) until the device is ready.
-  device_leds[0] = getHueAsRGB(0, C_BLACK);
-  device_leds[1] = getHueAsRGB(1, C_BLACK);
-  device_leds[2] = getHueAsRGB(2, C_BLACK);
-
   // Debounce the toggle switches and encoder pushbutton.
   switch_left.setDebounceTime(switch_debounce_time);
   switch_right.setDebounceTime(switch_debounce_time);
@@ -84,18 +71,12 @@ void setup() {
   pinMode(r_encoderB, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(r_encoderA), readEncoder, CHANGE);
 
+  // Built-in LED.
+  pinMode(LED_BUILTIN, OUTPUT);
+
   // Setup the bargraph after a brief delay.
   delay(10);
   setupBargraph();
-
-  // Feedback devices (piezo buzzer and vibration motor)
-  pinMode(BUZZER_PIN, OUTPUT);
-  TCCR2B = (TCCR2B & B11111000) | B00000010; // Set pin 11 PWM frequency to 3921.16 Hz
-  pinMode(VIBRATION_PIN, OUTPUT);
-
-  // Turn off any user feedback.
-  noTone(BUZZER_PIN);
-  vibrateOff();
 
   // Get initial switch/button states.
   switchLoops();
@@ -104,28 +85,12 @@ void setup() {
   delay(100);
 
   // Initialize critical timers.
-  ms_fast_led.start(0);
   if(b_wait_for_pack) {
     ms_packsync.start(0);
   }
 }
 
 void loop() {
-  // Call this on each loop in case the user changed their preference.
-  if(b_invert_leds) {
-    // Flip the identification of the LEDs.
-    i_device_led[0] = 2; // Top
-    i_device_led[1] = 1; // Upper
-    i_device_led[2] = 0; // Lower
-  }
-  else {
-    // Use the expected order for the LEDs.
-    // aka. Defaults for the Arduino Nano and ESP32.
-    i_device_led[0] = 0; // Top
-    i_device_led[1] = 1; // Upper
-    i_device_led[2] = 2; // Lower
-  }
-
   if(b_wait_for_pack) {
     if(ms_packsync.justFinished()) {
       // Tell the pack we are trying to sync.
@@ -136,6 +101,9 @@ void loop() {
         digitalWrite(BUILT_IN_LED, LOW);
       #endif
 
+      digitalWrite(LED_BUILTIN, LOW);
+      ms_blink_leds.stop();
+
       // Pause and try again in a moment.
       ms_packsync.start(i_sync_initial_delay);
     }
@@ -144,6 +112,8 @@ void loop() {
 
     if(!b_wait_for_pack) {
       // Indicate that we are no longer waiting on the pack.
+      digitalWrite(LED_BUILTIN, HIGH);
+      ms_blink_leds.start(i_blink_leds);
     }
   }
   else {

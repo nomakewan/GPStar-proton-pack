@@ -440,10 +440,6 @@ bool handleCommand(uint8_t i_command, uint16_t i_value) {
 
       bargraphFull();
       BARGRAPH_PATTERN = BG_RAMP_DOWN;
-
-      if(b_pack_on) {
-        ms_blink_leds.start(i_blink_leds);
-      }
     break;
 
     case A_ALARM_OFF:
@@ -452,8 +448,6 @@ bool handleCommand(uint8_t i_command, uint16_t i_value) {
       b_state_changed = true;
 
       if(b_pack_on) {
-        ms_blink_leds.stop();
-
         bargraphClear();
         BARGRAPH_PATTERN = BG_POWER_RAMP;
       }
@@ -480,7 +474,6 @@ bool handleCommand(uint8_t i_command, uint16_t i_value) {
       // Pack is overheating.
       b_overheating = true;
       b_state_changed = true;
-      ms_blink_leds.start(i_blink_leds);
 
       bargraphFull();
       BARGRAPH_PATTERN = BG_RAMP_DOWN;
@@ -490,7 +483,6 @@ bool handleCommand(uint8_t i_command, uint16_t i_value) {
       // Venting process completed.
       b_overheating = false;
       b_state_changed = true;
-      ms_blink_leds.stop();
 
       i_speed_multiplier = 1; // Return to normal speed.
 
@@ -503,7 +495,6 @@ bool handleCommand(uint8_t i_command, uint16_t i_value) {
       b_pack_on = true; // Implies the pack is powered on.
       b_wand_on = true; // Implies the wand is powered on.
       b_state_changed = true;
-      ms_blink_leds.start(i_blink_leds / i_speed_multiplier);
 
       bargraphClear();
       BARGRAPH_PATTERN = BG_OUTER_INNER;
@@ -512,7 +503,6 @@ bool handleCommand(uint8_t i_command, uint16_t i_value) {
     case A_FIRING_STOPPED:
       b_firing = false;
       b_state_changed = true;
-      ms_blink_leds.stop();
 
       if(!b_overheating) {
         i_speed_multiplier = 1; // Return to normal speed.

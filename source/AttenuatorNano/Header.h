@@ -21,42 +21,6 @@
 #pragma once
 
 /*
- * Pin for Addressable LEDs.
- */
-#define DEVICE_LED_PIN 9
-// States there are 3 LEDs: Top, Upper, and Lower
-#define DEVICE_NUM_LEDS 3
-CRGB device_leds[DEVICE_NUM_LEDS];
-
-/*
- * LED Device Ordering - Top, Upper, and Lower
- * Creates a simple byte array of N elements for the ID of each of the 3 LEDs.
- * Due to space constraints, users may have had to install the LEDs in reverse.
- * Therefore, the order of this list may change depending on user preference.
- * This feature will only be available for the ESP32-based controller.
- */
-bool b_invert_leds = false; // Denotes whether the order should be reversed.
-uint8_t i_device_led[DEVICE_NUM_LEDS] = {0, 1, 2}; // Default Order
-
-/*
- * Delay for fastled to update the addressable LEDs.
- * 0.03 ms to update 1 LED, and this device contains 2.
- * Just setting to 3 which should be sufficient.
- */
-millisDelay ms_fast_led;
-const uint8_t i_fast_led_delay = 3;
-
-/*
- * LED Animation Options
- */
-enum LED_ANIMATION : uint8_t {
-  AMBER_PULSE = 0,
-  ORANGE_FADE = 1,
-  RED_FADE = 2
-};
-enum LED_ANIMATION RAD_LENS_IDLE;
-
-/*
  * Manage the colour and blink pattern for the top LED.
  */
 millisDelay ms_top_blink; // Allows the top LED to blink for a menu state.
@@ -66,35 +30,10 @@ uint8_t i_top_led_brightness = 128; // Max brightness for this LED.
 bool b_top_led_off = false; // Denotes when top LED is mid-blink.
 
 /*
- * Pins for user feedback (audio/physical)
- *
- * Buzzer Frequencies:
- * buzzOn(440); // A4
- * buzzOn(494); // B4
- * buzzOn(523); // C4
- * buzzOn(587); // D4
- * buzzOn(659); // E4
- * buzzOn(698); // F4
- * buzzOn(784); // G4
- */
-#define BUZZER_PIN 10
-#define VIBRATION_PIN 11
-millisDelay ms_buzzer;
-millisDelay ms_vibrate;
-bool b_buzzer_on = false; // Denotes when pieze buzzer is active.
-bool b_vibrate_on = false; // Denotes when vibration moter is active.
-const uint8_t i_min_power = 0; // Essentially a "low" state (off).
-const uint8_t i_max_power = 255; // Essentially a "high" state (on).
-const uint16_t i_buzzer_max_time = 300; // Longest duration for a standalone "beep".
-const uint16_t i_vibrate_min_time = 500; // Minimum runtime for vibration motor.
-const uint16_t i_vibrate_max_time = 1500; // Maximum runtime for vibration motor.
-
-/*
  * For the alarm and venting/overheat, set the blink/buzz/vibrate interval.
  */
 millisDelay ms_blink_leds;
 const uint16_t i_blink_leds = 800;
-bool b_blink_blank = false; // Denotes when upper/lower LEDs are mid-blink.
 
 /*
  * Barmeter 28 segment bargraph configuration and timers.
@@ -130,9 +69,9 @@ bool b_cyclotron_lid_on = true;
  */
 //#define GPSTAR_INVERT_BARGRAPH
 #ifdef GPSTAR_INVERT_BARGRAPH
-  const uint8_t i_bargraph[28] = {54, 38, 22, 6, 53, 37, 21, 5, 52, 36, 20, 4, 51, 35, 19, 3, 50, 34, 18, 2, 49, 33, 17, 1, 48, 32, 16, 0};
+  const uint8_t i_bargraph[28] PROGMEM = {54, 38, 22, 6, 53, 37, 21, 5, 52, 36, 20, 4, 51, 35, 19, 3, 50, 34, 18, 2, 49, 33, 17, 1, 48, 32, 16, 0};
 #else
-  const uint8_t i_bargraph[28] = {0, 16, 32, 48, 1, 17, 33, 49, 2, 18, 34, 50, 3, 19, 35, 51, 4, 20, 36, 52, 5, 21, 37, 53, 6, 22, 38, 54};
+  const uint8_t i_bargraph[28] PROGMEM = {0, 16, 32, 48, 1, 17, 33, 49, 2, 18, 34, 50, 3, 19, 35, 51, 4, 20, 36, 52, 5, 21, 37, 53, 6, 22, 38, 54};
 #endif
 
 /*
