@@ -188,8 +188,9 @@ uint8_t i_vent_light_start = i_powercell_num_leds + i_cyclotron_num_leds;
  * On ESP32-S3, outer LEDs are 0-63, inner LEDs are 64-127.
  */
 #ifdef ESP32
+const uint8_t i_max_leds_per_pin = max((MAX_POWERCELL_LED_COUNT + OUTER_CYCLOTRON_LED_MAX + JEWEL_NFILTER_LED_COUNT), (INNER_CYCLOTRON_LED_PANEL_MAX + INNER_CYCLOTRON_CAKE_LED_MAX + INNER_CYCLOTRON_CAVITY_LED_MAX));
 int8_t led_pins[8] = { PACK_LED_PIN, CYCLOTRON_LED_PIN, -1, -1, -1, -1, -1, -1 };
-Adafruit_NeoPXL8 pack_led_output(max((MAX_POWERCELL_LED_COUNT + OUTER_CYCLOTRON_LED_MAX + JEWEL_NFILTER_LED_COUNT), (INNER_CYCLOTRON_LED_PANEL_MAX + INNER_CYCLOTRON_CAKE_LED_MAX + INNER_CYCLOTRON_CAVITY_LED_MAX)), led_pins);
+Adafruit_NeoPXL8 pack_led_output(i_max_leds_per_pin, led_pins);
 #else
 Adafruit_NeoPixel pack_led_output((i_max_pack_leds + i_nfilter_jewel_leds), PACK_LED_PIN);
 Adafruit_NeoPixel cake_led_output((i_max_inner_cyclotron_leds), CYCLOTRON_LED_PIN);
@@ -220,11 +221,11 @@ struct CakeLeds {
   }
 #ifdef ESP32
   CakeLeds& operator=(uint32_t a) {
-    pack_led_output.setPixelColor(index+64, a);
+    pack_led_output.setPixelColor(index+i_max_leds_per_pin, a);
     return *this;
   }
 
-  explicit operator bool() { return pack_led_output.getPixelColor(index+64); }
+  explicit operator bool() { return pack_led_output.getPixelColor(index+i_max_leds_per_pin); }
 #else
   CakeLeds& operator=(uint32_t a) {
     cake_led_output.setPixelColor(index, a);
