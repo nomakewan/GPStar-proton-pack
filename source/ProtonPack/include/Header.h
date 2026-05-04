@@ -188,7 +188,7 @@ uint8_t i_vent_light_start = i_powercell_num_leds + i_cyclotron_num_leds;
  * On ESP32-S3, outer LEDs are 0-63, inner LEDs are 64-127.
  */
 #ifdef ESP32
-const uint8_t i_max_leds_per_pin = max((MAX_POWERCELL_LED_COUNT + OUTER_CYCLOTRON_LED_MAX + JEWEL_NFILTER_LED_COUNT), (INNER_CYCLOTRON_LED_PANEL_MAX + INNER_CYCLOTRON_CAKE_LED_MAX + INNER_CYCLOTRON_CAVITY_LED_MAX));
+const uint8_t i_max_leds_per_pin = max((MAX_POWERCELL_LED_COUNT + OUTER_CYCLOTRON_LED_MAX + JEWEL_NFILTER_LED_COUNT), (INNER_CYCLOTRON_LED_PANEL_MAX + INNER_CYCLOTRON_CAKE_LED_MAX + INNER_CYCLOTRON_CAVITY_LED_MAX)) + 2; // Add 2 to avoid pixel bug
 int8_t led_pins[8] = { PACK_LED_PIN, CYCLOTRON_LED_PIN, -1, -1, -1, -1, -1, -1 };
 Adafruit_NeoPXL8 pack_led_output(i_max_leds_per_pin, led_pins);
 #else

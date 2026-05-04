@@ -205,8 +205,7 @@ bool b_vent_lights_changed = false; // Check for whether there was actually a ch
  * On ESP32-S3, barrel LEDs are 0-63, vent LEDs are 64-127.
  */
 #ifdef ESP32
-//const uint8_t i_max_leds_per_pin = max(BARREL_LEDS_MAX, VENT_LEDS_MAX);
-const uint8_t i_max_leds_per_pin = 64;
+const uint8_t i_max_leds_per_pin = max(BARREL_LEDS_MAX, VENT_LEDS_MAX) + 2; // Add 2 to avoid pixel bug
 int8_t led_pins[8] = { BARREL_LED_PIN, TOP_LED_PIN, -1, -1, -1, -1, -1, -1 };
 Adafruit_NeoPXL8 wand_led_output(i_max_leds_per_pin, led_pins);
 #else
