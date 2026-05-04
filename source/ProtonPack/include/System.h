@@ -28,24 +28,6 @@
 void updateLEDs();
 void executeCommand(uint8_t i_command, uint16_t i_value); // From Command.h
 
-inline uint32_t maximizeBrightness(uint32_t rgb, uint8_t limit = 255)  {
-  uint8_t red = (uint8_t)(rgb >> 16);
-  uint8_t green = (uint8_t)(rgb >> 8);
-  uint8_t blue = (uint8_t)(rgb >> 0);
-  uint8_t max = red;
-  if(green > max) max = green;
-  if(blue > max) max = blue;
-
-  // stop div/0 when color is black
-  if(max > 0) {
-    uint16_t factor = ((uint16_t)(limit) * 256) / max;
-    red =   (red   * factor) / 256;
-    green = (green * factor) / 256;
-    blue =  (blue  * factor) / 256;
-  }
-  return pack_led_output.Color(red, green, blue);
-}
-
 void sanitizeCyclotronMultipliers() {
   // Cyclotron multiplier: must be between 1 and 4
   if(i_cyclotron_multiplier < 1) i_cyclotron_multiplier = 1;

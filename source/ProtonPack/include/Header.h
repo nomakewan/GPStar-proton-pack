@@ -193,7 +193,7 @@ int8_t led_pins[8] = { PACK_LED_PIN, CYCLOTRON_LED_PIN, -1, -1, -1, -1, -1, -1 }
 Adafruit_NeoPXL8 pack_led_output(i_max_leds_per_pin, led_pins);
 #else
 Adafruit_NeoPixel pack_led_output((i_max_pack_leds + i_nfilter_jewel_leds), PACK_LED_PIN);
-Adafruit_NeoPixel cake_led_output((i_max_inner_cyclotron_leds), CYCLOTRON_LED_PIN);
+Adafruit_NeoPixel cake_led_output(i_max_inner_cyclotron_leds, CYCLOTRON_LED_PIN);
 #endif
 
 struct PackLeds {

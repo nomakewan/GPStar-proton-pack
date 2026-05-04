@@ -6151,7 +6151,7 @@ void modeFireStart() {
   #endif
 }
 
-void fireStreamEffect(CRGB c_colour) {
+void fireStreamEffect(uint32_t c_colour) {
   uint8_t i_firing_stream_tmp; // Stores a calculated value based on LED count.
 
   switch(WAND_BARREL_LED_COUNT) {
@@ -6981,7 +6981,7 @@ void fireStreamEffect(CRGB c_colour) {
   }
 }
 
-void fireStreamStart(CRGB c_colour) {
+void fireStreamStart(uint32_t c_colour) {
   if(ms_firing_lights.justFinished() && i_barrel_light < i_num_barrel_leds) {
     switch(WAND_BARREL_LED_COUNT) {
       case LEDS_50:
@@ -8764,7 +8764,7 @@ void fireEffectEnd() {
   }
 }
 
-void fireStreamEnd(CRGB c_colour) {
+void fireStreamEnd(uint32_t c_colour) {
   if(i_barrel_light < i_num_barrel_leds) {
     switch(WAND_BARREL_LED_COUNT) {
       case LEDS_50:

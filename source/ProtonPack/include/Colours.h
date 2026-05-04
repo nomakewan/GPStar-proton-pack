@@ -71,6 +71,24 @@ enum device : uint8_t {
   VENT_LIGHT
 };
 
+inline uint32_t maximizeBrightness(uint32_t rgb, uint8_t limit = 255)  {
+  uint8_t red = (uint8_t)(rgb >> 16);
+  uint8_t green = (uint8_t)(rgb >> 8);
+  uint8_t blue = (uint8_t)(rgb >> 0);
+  uint8_t max = red;
+  if(green > max) max = green;
+  if(blue > max) max = blue;
+
+  // stop div/0 when color is black
+  if(max > 0) {
+    uint16_t factor = ((uint16_t)(limit) * 256) / max;
+    red =   (red   * factor) / 256;
+    green = (green * factor) / 256;
+    blue =  (blue  * factor) / 256;
+  }
+  return pack_led_output.Color(red, green, blue);
+}
+
 uint8_t getBrightness(uint8_t i_percent = 100) {
   // Brightness here is a percentage, to be converted to a range 0-255.
   if(i_percent > 100) {
@@ -472,7 +490,7 @@ uint32_t getHue(uint8_t i_device, uint8_t i_colour, uint8_t i_brightness = 255, 
         }
       }
 
-      i_saturation = 128;
+      i_saturation = 255;
     break;
 
     case C_ORANGEPURPLE:
@@ -499,7 +517,7 @@ uint32_t getHue(uint8_t i_device, uint8_t i_colour, uint8_t i_brightness = 255, 
         }
       }
 
-      i_saturation = 128;
+      i_saturation = 255;
     break;
 
     case C_BLUEFADE:

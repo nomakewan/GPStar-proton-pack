@@ -58,8 +58,8 @@
   #define CLIPPARD_LED_PIN 9 // LED underneath the Clippard valve. (Orange or White LED)
   #define BARREL_LED_PIN 10 // Data pin for the addressable LEDs in the barrel.
   #define VIBRATION_PIN 11 // Pin for the vibration motor.
-  #define TOP_LED_PIN 12 // Blinking white light beside the vent on top of the wand.
-  #define VENT_LED_PIN 13 // Vent light (either stock or RGB LED).
+  #define TOP_LED_PIN 12 // Blinking white light beside the vent on top of the wand; data pin for RGB vent board.
+  #define VENT_LED_PIN 13 // Vent light (non-RGB).
   #define BARREL_HAT_LED_PIN 22 // Hat[1] light at front of the wand near the barrel tip. (Orange LED)
   #define TOP_HAT_LED_PIN 23 // Hat[2] light at top of the wand body near vent. (Orange or White LED)
   #define BARREL_TIP_LED_PIN 24 // White LED at tip of the wand barrel. (White LED)
@@ -161,7 +161,6 @@ const uint16_t i_meson_blast_delay_level_1 = 275;
  * Support for up to 50 LEDs from the GPStar Neutrona Barrel. (body of 48 + 2 strobe tips which are also RGB).
  */
 #define BARREL_LEDS_MAX 50 // The maximum number of barrel LEDs supported (GPStar = 48 + 2 Strobe Tips. Frutto = 48 + Strobe Tip).
-CRGB barrel_leds[BARREL_LEDS_MAX];
 // Array of LEDs on the GPStar Neutrona Barrel. LEDs 36 and 37 are the very tips and will not be in this array.
 const uint8_t gpstar_neutrona_barrel[48] PROGMEM = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38};
 // This is the GPStar Barrel LED min. It has only 2 LEDs.
@@ -196,10 +195,67 @@ millisDelay ms_fast_led;
  * RGB vent lights.
  */
 #define VENT_LEDS_MAX 2 // The maximum number of LEDs for the vent lights. Main vent + top Clip Lite.
-CRGB vent_leds[VENT_LEDS_MAX]; // FastLED object array for the RGB top/vent LEDs.
 millisDelay ms_vent_light; // Timer to control update rate for RGB top/vent LEDs.
 const uint16_t i_vent_light_update_interval = 150; // FastLED update interval specifically for the top/vent LEDs.
 bool b_vent_lights_changed = false; // Check for whether there was actually a change to prevent superfluous calls to showLeds().
+
+/*
+ * Adafruit LED declaration.
+ * On ATMEGA2560, each pin has its own object.
+ * On ESP32-S3, barrel LEDs are 0-63, vent LEDs are 64-127.
+ */
+#ifdef ESP32
+//const uint8_t i_max_leds_per_pin = max(BARREL_LEDS_MAX, VENT_LEDS_MAX);
+const uint8_t i_max_leds_per_pin = 64;
+int8_t led_pins[8] = { BARREL_LED_PIN, TOP_LED_PIN, -1, -1, -1, -1, -1, -1 };
+Adafruit_NeoPXL8 wand_led_output(i_max_leds_per_pin, led_pins);
+#else
+Adafruit_NeoPixel wand_led_output(BARREL_LEDS_MAX, BARREL_LED_PIN);
+Adafruit_NeoPixel vent_led_output(VENT_LEDS_MAX, TOP_LED_PIN);
+#endif
+
+struct WandLeds {
+  uint8_t index;
+
+  WandLeds& operator[](uint8_t i) {
+    index = i;
+    return *this;
+  }
+
+  WandLeds& operator=(uint32_t a) {
+    wand_led_output.setPixelColor(index, a);
+    return *this;
+  }
+
+  explicit operator bool() { return wand_led_output.getPixelColor(index); }
+};
+
+struct VentLeds {
+  uint8_t index;
+
+  VentLeds& operator[](uint8_t i) {
+    index = i;
+    return *this;
+  }
+#ifdef ESP32
+  VentLeds& operator=(uint32_t a) {
+    wand_led_output.setPixelColor(index+i_max_leds_per_pin, a);
+    return *this;
+  }
+
+  explicit operator bool() { return wand_led_output.getPixelColor(index+i_max_leds_per_pin); }
+#else
+  VentLeds& operator=(uint32_t a) {
+    vent_led_output.setPixelColor(index, a);
+    return *this;
+  }
+
+  explicit operator bool() { return vent_led_output.getPixelColor(index); }
+#endif
+};
+
+WandLeds barrel_leds;
+VentLeds vent_leds;
 
 /*
  * Time in milliseconds for blinking the top white LED while the wand is on.

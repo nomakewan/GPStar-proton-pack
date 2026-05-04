@@ -52,15 +52,16 @@
 #include <CRC32.h>
 #include <digitalWriteFast.h>
 #include <millisDelay.h>
-#include <FastLED.h>
 #include <avdweb_Switch.h>
 #include <Ramp.h>
 #include <ht16k33.h>
 #include <SerialTransfer.h>
 #include <Wire.h>
 #ifdef ESP32
+  #include <Adafruit_NeoPXL8.h>
   #include <HardwareSerial.h>
 #else
+  #include <Adafruit_NeoPixel.h>
   #include <EEPROM.h>
 #endif
 
@@ -137,21 +138,13 @@ void sendDebug(const String& message) {
 }
 
 void setup() {
-#ifdef ESP32
-  // Force RMT driver exclusively (requires FastLED 3.10.4 at a minimum, not yet released).
-  // This avoids issues with WiFi/networking on ESP32 when using the default bit-banging method.
-  //FastLED.setExclusiveDriver("RMT");
-#endif
-
-  // Barrel LEDs - NOTE: These are GRB not RGB so note that all CRGB objects will have R/G swapped.
-  FastLED.addLeds<NEOPIXEL, BARREL_LED_PIN>(barrel_leds, BARREL_LEDS_MAX).setCorrection(TypicalLEDStrip);
-  FastLED.setMaxRefreshRate(0); // Disable FastLED's blocking 2.5ms delay.
-
-  // RGB Vent Light.
-  FastLED.addLeds<NEOPIXEL, TOP_LED_PIN>(vent_leds, VENT_LEDS_MAX).setCorrection(TypicalLEDStrip);
-
   // Update all addressable LEDs to prevent stale LED states.
-  FastLED.show();
+  wand_led_output.begin();
+  wand_led_output.show();
+  #ifndef ESP32
+  vent_led_output.begin();
+  vent_led_output.show();
+  #endif
 
 #ifdef ESP32
   // Reduce CPU frequency to 160 MHz to save ~33% power compared to 240 MHz.
@@ -692,27 +685,28 @@ void loop() {
   }
 
   // Update the addressable LEDs and restart the timer.
+  #ifndef ESP32
   if(ms_fast_led.justFinished()) {
-    FastLED[0].showLeds(255);
+  #endif
+    wand_led_output.show();
 
+  #ifndef ESP32
+    ms_fast_led.start(i_fast_led_delay);
     if(b_vent_lights_changed) {
       if(b_rgb_vent_light || WAND_CONN_STATE == PACK_DISCONNECTED) {
         // Only commit an update if the addressable LED panel is installed or if the Neutrona Wand can not make a connection to the Proton Pack.
-        FastLED[1].showLeds(255);
+        vent_led_output.show();
 
-      #ifndef ESP32
         if(WAND_CONN_STATE == PACK_DISCONNECTED && !vent_leds[1]) {
           // Make sure we turn the actual pin back off so the non-addressable LED still blinks.
           digitalWriteFast(TOP_LED_PIN, HIGH);
         }
-      #endif
       }
 
       b_vent_lights_changed = false;
     }
-
-    ms_fast_led.start(i_fast_led_delay);
   }
+  #endif
 
 #ifdef ESP32
   // The ESP32 uses a dual-core CPU with the loop() executing in Core0 by default.
