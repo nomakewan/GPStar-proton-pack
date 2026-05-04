@@ -44,16 +44,17 @@
 #include <CRC32.h>
 #include <digitalWriteFast.h>
 #include <millisDelay.h>
-#include <FastLED.h>
 #include <ezButton.h>
 #include <Ramp.h>
 #include <SerialTransfer.h>
 #include <Wire.h>
 #ifdef ESP32
+  #include <Adafruit_NeoPXL8.h>
   #include <HDC1080.h>
   GuL::HDC1080 tempSensor(Wire1);
   #include <HardwareSerial.h>
 #else
+  #include <Adafruit_NeoPixel.h>
   #include <EEPROM.h>
 #endif
 
@@ -119,21 +120,13 @@ void sendDebug(const String& message) {
 }
 
 void setup() {
-#ifdef ESP32
-  // Force RMT driver exclusively (requires FastLED 3.10.4 at a minimum, not yet released).
-  // This avoids issues with WiFi/networking on ESP32 when using the default bit-banging method.
-  //FastLED.setExclusiveDriver("RMT");
-#endif
-
-  // Power Cell, Cyclotron Lid, and N-Filter.
-  FastLED.addLeds<NEOPIXEL, PACK_LED_PIN>(pack_leds, MAX_POWERCELL_LED_COUNT + OUTER_CYCLOTRON_LED_MAX + JEWEL_NFILTER_LED_COUNT).setCorrection(TypicalLEDStrip);
-  FastLED.setMaxRefreshRate(0); // Disable FastLED's blocking 2.5ms delay.
-
-  // Inner Cyclotron LEDs (Inner Panel + Cyclotron + Cavity).
-  FastLED.addLeds<NEOPIXEL, CYCLOTRON_LED_PIN>(cyclotron_leds, INNER_CYCLOTRON_LED_PANEL_MAX + INNER_CYCLOTRON_CAKE_LED_MAX + INNER_CYCLOTRON_CAVITY_LED_MAX).setCorrection(TypicalLEDStrip);
-
   // Update all addressable LEDs to prevent stale LED states.
-  FastLED.show();
+  pack_led_output.begin();
+  pack_led_output.show();
+  #ifndef ESP32
+  cake_led_output.begin();
+  cake_led_output.show();
+  #endif
 
 #ifdef ESP32
   // Reduce CPU frequency to 160 MHz to save ~33% power compared to 240 MHz.
@@ -361,8 +354,11 @@ void setup() {
 
 void updateLEDs() {
   // Update all LED's when the FastLED timer has finished.
+  #ifndef ESP32
   if(ms_fast_led.justFinished()) {
-    FastLED.show();
+    cake_led_output.show();
+  #endif
+    pack_led_output.show();
 
     // Restart the FastLED timer.
     ms_fast_led.start(i_fast_led_delay);
@@ -370,7 +366,9 @@ void updateLEDs() {
     if(b_powercell_updating) {
       b_powercell_updating = false;
     }
+  #ifndef ESP32
   }
+  #endif
 }
 
 // Loop logic dedicated to this device which handles all of the standard operations.

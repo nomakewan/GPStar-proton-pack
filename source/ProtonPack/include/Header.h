@@ -183,9 +183,62 @@ uint8_t i_pack_num_leds = i_powercell_num_leds + i_cyclotron_num_leds + i_nfilte
 uint8_t i_vent_light_start = i_powercell_num_leds + i_cyclotron_num_leds;
 
 /*
+ * Adafruit LED declaration.
+ * On ATMEGA2560, each pin has its own object.
+ * On ESP32-S3, outer LEDs are 0-63, inner LEDs are 64-127.
+ */
+#ifdef ESP32
+int8_t led_pins[8] = { PACK_LED_PIN, CYCLOTRON_LED_PIN, -1, -1, -1, -1, -1, -1 };
+Adafruit_NeoPXL8 pack_led_output(max((MAX_POWERCELL_LED_COUNT + OUTER_CYCLOTRON_LED_MAX + JEWEL_NFILTER_LED_COUNT), (INNER_CYCLOTRON_LED_PANEL_MAX + INNER_CYCLOTRON_CAKE_LED_MAX + INNER_CYCLOTRON_CAVITY_LED_MAX)), led_pins);
+#else
+Adafruit_NeoPixel pack_led_output((i_max_pack_leds + i_nfilter_jewel_leds), PACK_LED_PIN);
+Adafruit_NeoPixel cake_led_output((i_max_inner_cyclotron_leds), CYCLOTRON_LED_PIN);
+#endif
+
+struct PackLeds {
+  uint8_t index;
+
+  PackLeds& operator[](uint8_t i) {
+    index = i;
+    return *this;
+  }
+
+  PackLeds& operator=(uint32_t a) {
+    pack_led_output.setPixelColor(index, a);
+    return *this;
+  }
+
+  explicit operator bool() { return pack_led_output.getPixelColor(index); }
+};
+
+struct CakeLeds {
+  uint8_t index;
+
+  CakeLeds& operator[](uint8_t i) {
+    index = i;
+    return *this;
+  }
+#ifdef ESP32
+  CakeLeds& operator=(uint32_t a) {
+    pack_led_output.setPixelColor(index+64, a);
+    return *this;
+  }
+
+  explicit operator bool() { return pack_led_output.getPixelColor(index+64); }
+#else
+  CakeLeds& operator=(uint32_t a) {
+    cake_led_output.setPixelColor(index, a);
+    return *this;
+  }
+
+  explicit operator bool() { return cake_led_output.getPixelColor(index); }
+#endif
+};
+
+/*
  * Proton Pack Power Cell and Cyclotron lid LED pin.
  */
-CRGB pack_leds[MAX_POWERCELL_LED_COUNT + OUTER_CYCLOTRON_LED_MAX + JEWEL_NFILTER_LED_COUNT];
+PackLeds pack_leds;
 
 /*
  * Inner Cyclotron LEDs (optional).
@@ -194,7 +247,7 @@ CRGB pack_leds[MAX_POWERCELL_LED_COUNT + OUTER_CYCLOTRON_LED_MAX + JEWEL_NFILTER
  * Maximum allowed LEDs for the Inner Cyclotron Cake is 36.
  * Maximum allowed LEDs for the Inner Cyclotron Cavity is 20.
  */
-CRGB cyclotron_leds[INNER_CYCLOTRON_LED_PANEL_MAX + INNER_CYCLOTRON_CAKE_LED_MAX + INNER_CYCLOTRON_CAVITY_LED_MAX];
+CakeLeds cyclotron_leds;
 
 /*
  * Delay for fastled to update the addressable LEDs.
@@ -472,18 +525,6 @@ enum pack_led_dim_control {
   DIM_CYCLOTRON_PANEL
 };
 uint8_t pack_dim_toggle = DIM_POWERCELL;
-
-/*
- * LED Devices.
- */
-enum device {
-  POWERCELL,
-  CYCLOTRON_OUTER,
-  CYCLOTRON_INNER,
-  CYCLOTRON_CAVITY,
-  CYCLOTRON_PANEL,
-  VENT_LIGHT
-};
 
 /*
  * System preference ENUM holders.
