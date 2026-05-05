@@ -56,13 +56,14 @@
 // 3rd-Party Libraries
 #include <CRC32.h>
 #include <millisDelay.h>
-#include <FastLED.h>
 #include <avdweb_Switch.h>
 #include <ht16k33.h>
 #include <Wire.h>
 #ifdef ESP32
+  #include <Adafruit_NeoPXL8.h>
   #include <HardwareSerial.h>
 #else
+  #include <Adafruit_NeoPixel.h>
   #include <EEPROM.h>
 #endif
 
@@ -165,15 +166,13 @@ Task inputsTask(14, TASK_FOREVER, &inputTaskCallback);
 #endif
 
 void setup() {
-  // System LEDs - Consists of the chain of cyclotron and barrel LEDs
-  FastLED.addLeds<NEOPIXEL, SYSTEM_LED_PIN>(system_leds, CYCLOTRON_LED_COUNT + BARREL_LED_COUNT).setCorrection(TypicalLEDStrip);
-  FastLED.setMaxRefreshRate(0); // Disable FastLED's blocking 2.5ms delay.
-
-  // RGB Vent Light.
-  FastLED.addLeds<NEOPIXEL, TOP_LED_PIN>(vent_leds, VENT_LEDS_MAX).setCorrection(TypicalLEDStrip);
-
   // Update all addressable LEDs to prevent stale LED states.
-  FastLED.show();
+  system_led_output.begin();
+  system_led_output.show();
+  #ifndef ESP32
+  vent_led_output.begin();
+  vent_led_output.show();
+  #endif
 
 #ifdef ESP32
   // Reduce CPU frequency to 160 MHz to save ~33% power compared to 240 MHz.
@@ -347,18 +346,20 @@ void animateTaskCallback() {
   // Keep the cyclotron spinning as necessary.
   checkCyclotron();
 
-  // Update all addressable LEDs to reflect any changes.
-  FastLED[0].showLeds(255);
+  // Update barrel/cyclotron addressable LEDs to reflect any changes.
+  system_led_output.show();
 
+  #ifndef ESP32
   // Update the vent/top LEDs.
   if(b_vent_lights_changed) {
     if(b_rgb_vent_light) {
       // Only commit an update if the addressable LED panel is installed.
-      FastLED[1].showLeds(255);
+      vent_led_output.show();
     }
 
     b_vent_lights_changed = false;
   }
+  #endif
 }
 
 // Task callback for handling user inputs.

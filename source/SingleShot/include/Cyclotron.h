@@ -84,12 +84,12 @@ void updateCyclotron(uint8_t i_colour) {
 
     // Toggle between the LEDs in the i_cyclotron_pair using the given colour.
     if(sb_toggle) {
-      system_leds[i_cyclotron_led_start + i_cyclotron_pair[si_pairing][0]] = getHueAsRGB(i_colour).nscale8(si_brightness_in);  // Fade in LED 1 in the pair
-      system_leds[i_cyclotron_led_start + i_cyclotron_pair[si_pairing][1]] = getHueAsRGB(i_colour).nscale8(si_brightness_out); // Fade out LED 2 in the pair
+      system_leds[i_cyclotron_led_start + i_cyclotron_pair[si_pairing][0]] = nscale8(getHueAsRGB(i_colour), si_brightness_in);  // Fade in LED 1 in the pair
+      system_leds[i_cyclotron_led_start + i_cyclotron_pair[si_pairing][1]] = nscale8(getHueAsRGB(i_colour), si_brightness_out); // Fade out LED 2 in the pair
     }
     else {
-      system_leds[i_cyclotron_led_start + i_cyclotron_pair[si_pairing][0]] = getHueAsRGB(i_colour).nscale8(si_brightness_out); // Fade out LED 1 in the pair
-      system_leds[i_cyclotron_led_start + i_cyclotron_pair[si_pairing][1]] = getHueAsRGB(i_colour).nscale8(si_brightness_in);  // Fade in LED 2 in the pair
+      system_leds[i_cyclotron_led_start + i_cyclotron_pair[si_pairing][0]] = nscale8(getHueAsRGB(i_colour), si_brightness_out); // Fade out LED 1 in the pair
+      system_leds[i_cyclotron_led_start + i_cyclotron_pair[si_pairing][1]] = nscale8(getHueAsRGB(i_colour), si_brightness_in);  // Fade in LED 2 in the pair
     }
 
     // Toggle state and reset brightness variables after fade-in is complete.

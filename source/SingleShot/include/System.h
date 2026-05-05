@@ -76,7 +76,7 @@ void allLightsOff() {
   ventTopLightControl(false);
 
   // Clear all addressable LEDs by filling the array with black.
-  fill_solid(system_leds, CYCLOTRON_LED_COUNT + BARREL_LED_COUNT, CRGB::Black);
+  system_led_output.clear();
 
   if(!b_playing_music) {
     // If music is not playing, arm the power-on reminder LED system.
@@ -181,10 +181,18 @@ void systemPOST() {
   if(b_rgb_vent_light) {
     // These are driven from the TopWhite LED pin.
     vent_leds[0] = getHueAsRGB(C_WARM_WHITE);
-    FastLED[1].showLeds(255);
+    #ifdef ESP32
+      system_led_output.show();
+    #else
+      vent_led_output.show();
+    #endif
     delay(i_delay);
     vent_leds[1] = getHueAsRGB(C_WHITE);
-    FastLED[1].showLeds(255);
+    #ifdef ESP32
+      system_led_output.show();
+    #else
+      vent_led_output.show();
+    #endif
     delay(i_delay);
   }
   #ifndef ESP32
@@ -204,20 +212,20 @@ void systemPOST() {
   // Sequentially turn on all LEDs in the barrel.
   for(uint8_t i = 0; i < i_num_barrel_leds; i++) {
     system_leds[i] = getHueAsRGB(C_BLUE);
-    FastLED[0].showLeds(255);
+    system_led_output.show();
     delay(i_delay);
   }
 
   // Sequentially turn on all LEDs in the cyclotron.
   for(uint8_t i = 0; i < i_num_cyclotron_leds; i++) {
     system_leds[i_cyclotron_led_start + i] = getHueAsRGB(C_RED);
-    FastLED[0].showLeds(255);
+    system_led_output.show();
     delay(i_delay);
   }
 
   // Turn on the front barrel.
   system_leds[i_barrel_led] = getHueAsRGB(C_WHITE);
-  FastLED[0].showLeds(255);
+  system_led_output.show();
 
   delay(i_delay * 8);
 

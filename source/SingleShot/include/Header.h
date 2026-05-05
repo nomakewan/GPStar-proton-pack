@@ -52,7 +52,6 @@
 
 #define CYCLOTRON_LED_COUNT 7 // GPStar 7-LED Jewel
 #define BARREL_LED_COUNT 7 // GPStar 7-LED Jewel
-CRGB system_leds[CYCLOTRON_LED_COUNT + BARREL_LED_COUNT];
 const uint8_t i_barrel_led = 6; // This will be the index of the light (#7), not the count
 const uint8_t i_num_barrel_leds = BARREL_LED_COUNT; // This will be the number of barrel LEDs
 const uint8_t i_num_cyclotron_leds = CYCLOTRON_LED_COUNT; // This will be the number of cyclotron LEDs
@@ -62,9 +61,64 @@ const uint8_t i_cyclotron_led_start = i_num_barrel_leds; // The first element (i
  * RGB vent lights.
  */
 #define VENT_LEDS_MAX 2 // The maximum number of LEDs for the vent lights. Main vent + top Cliplite.
-CRGB vent_leds[VENT_LEDS_MAX]; // FastLED object array for the RGB top/vent LEDs.
-const uint16_t i_vent_light_update_interval = 150; // FastLED update interval specifically for the top/vent LEDs.
 bool b_vent_lights_changed = false; // Check for whether there was actually a change to prevent superfluous calls to showLeds().
+
+/*
+ * Adafruit LED declaration.
+ * On ATMEGA2560, each pin has its own object.
+ * On ESP32-S3, barrel LEDs are 0-63, vent LEDs are 64-127.
+ */
+#ifdef ESP32
+const uint8_t i_max_leds_per_pin = max((CYCLOTRON_LED_COUNT + BARREL_LED_COUNT), VENT_LEDS_MAX) + 2; // Add 2 to avoid pixel bug
+int8_t led_pins[8] = { SYSTEM_LED_PIN, TOP_LED_PIN, -1, -1, -1, -1, -1, -1 };
+Adafruit_NeoPXL8 system_led_output(i_max_leds_per_pin, led_pins);
+#else
+Adafruit_NeoPixel system_led_output((CYCLOTRON_LED_COUNT + BARREL_LED_COUNT), SYSTEM_LED_PIN);
+Adafruit_NeoPixel vent_led_output(VENT_LEDS_MAX, TOP_LED_PIN);
+#endif
+
+struct SystemLeds {
+  uint8_t index;
+
+  SystemLeds& operator[](uint8_t i) {
+    index = i;
+    return *this;
+  }
+
+  SystemLeds& operator=(uint32_t a) {
+    system_led_output.setPixelColor(index, a);
+    return *this;
+  }
+
+  explicit operator bool() { return system_led_output.getPixelColor(index); }
+};
+
+struct VentLeds {
+  uint8_t index;
+
+  VentLeds& operator[](uint8_t i) {
+    index = i;
+    return *this;
+  }
+#ifdef ESP32
+  VentLeds& operator=(uint32_t a) {
+    system_led_output.setPixelColor(index+i_max_leds_per_pin, a);
+    return *this;
+  }
+
+  explicit operator bool() { return system_led_output.getPixelColor(index+i_max_leds_per_pin); }
+#else
+  VentLeds& operator=(uint32_t a) {
+    vent_led_output.setPixelColor(index, a);
+    return *this;
+  }
+
+  explicit operator bool() { return vent_led_output.getPixelColor(index); }
+#endif
+};
+
+SystemLeds system_leds;
+VentLeds vent_leds;
 
 /*
  * Non-addressable LEDs
