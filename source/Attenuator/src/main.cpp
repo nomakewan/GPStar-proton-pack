@@ -21,10 +21,6 @@
 // Required for PlatformIO
 #include <Arduino.h>
 
-// Suppress warning about SPI hardware pins
-// Define this before including <FastLED.h>
-#define FASTLED_INTERNAL
-
 // Set to 1 to enable built-in debug messages via Serial device output.
 // Use with DEBUG_SEND_TO_CONSOLE and other DEBUG_'s in Configuration.h
 #define GPSTAR_DEBUG 0
@@ -47,7 +43,7 @@
 
 // 3rd-Party Libraries
 #include <millisDelay.h>
-#include <FastLED.h>
+#include <Adafruit_NeoPixel.h>
 #include <ezButton.h>
 #include <ht16k33.h>
 #include <Wire.h>
@@ -178,7 +174,7 @@ void AnimationTask(void *parameter) {
     }
 
     // Update the device LEDs and restart the timer.
-    FastLED.show();
+    device_led_output.show();
 
     vTaskDelay(8 / portTICK_PERIOD_MS); // 8ms delay
   }
@@ -456,12 +452,9 @@ void WiFiSetupTask(void *parameter) {
 }
 
 void setup() {
-  // RGB LEDs for effects (upper/lower) and user status (top).
-  FastLED.addLeds<NEOPIXEL, DEVICE_LED_PIN>(device_leds, DEVICE_NUM_LEDS).setCorrection(TypicalLEDStrip);
-  FastLED.setMaxRefreshRate(0); // Disable FastLED's blocking 2.5ms delay.
-
   // Update all addressable LEDs to prevent stale LED states.
-  FastLED.show();
+  device_led_output.begin();
+  device_led_output.show();
 
   Serial.begin(115200); // Serial monitor via USB connection.
 
@@ -583,13 +576,13 @@ void setup() {
 
 // Helper function to format bytes with a comma separator
 String formatBytesWithCommas(uint32_t bytes) {
-    String result = String(bytes);
-    int insertPosition = result.length() - 3;
-    while(insertPosition > 0) {
-        result = result.substring(0, insertPosition) + "," + result.substring(insertPosition);
-        insertPosition -= 3;
-    }
-    return result;
+  String result = String(bytes);
+  int insertPosition = result.length() - 3;
+  while(insertPosition > 0) {
+    result = result.substring(0, insertPosition) + "," + result.substring(insertPosition);
+    insertPosition -= 3;
+  }
+  return result;
 }
 
 // Function to calculate and print CPU load

@@ -26,7 +26,29 @@
 #define BUILT_IN_LED 2
 #define DEVICE_LED_PIN 23
 #define DEVICE_NUM_LEDS 3 // States there are 3 LEDs: Top, Upper, and Lower
-CRGB device_leds[DEVICE_NUM_LEDS];
+
+/*
+ * Adafruit LED declaration.
+ */
+Adafruit_NeoPixel device_led_output(DEVICE_NUM_LEDS, DEVICE_LED_PIN);
+
+struct DeviceLeds {
+  uint8_t index;
+
+  DeviceLeds& operator[](uint8_t i) {
+    index = i;
+    return *this;
+  }
+
+  DeviceLeds& operator=(uint32_t a) {
+    device_led_output.setPixelColor(index, a);
+    return *this;
+  }
+
+  explicit operator bool() { return device_led_output.getPixelColor(index); }
+};
+
+DeviceLeds device_leds;
 
 /*
  * LED Device Ordering - Top, Upper, and Lower

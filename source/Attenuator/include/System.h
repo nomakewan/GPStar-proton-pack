@@ -171,10 +171,10 @@ bool changeStreamMode(ENCODER_STATES direction) {
  */
 void deviceLightsOff() {
   // Turn off the LEDs by setting to black.
-  if(device_leds[i_device_led[1]] != CRGB::Black) {
+  if(!device_leds[i_device_led[1]]) {
     device_leds[i_device_led[1]] = getHueAsRGB(i_device_led[1], C_BLACK);
   }
-  if(device_leds[i_device_led[2]] != CRGB::Black) {
+  if(!device_leds[i_device_led[2]]) {
     device_leds[i_device_led[2]] = getHueAsRGB(i_device_led[2], C_BLACK);
   }
 }
@@ -359,7 +359,7 @@ void updateLEDs() {
   // Update the lower LED based on the scheme determined above.
   if(b_blink_blank) {
     // Turn off when in mid-blink state.
-    if(device_leds[i_device_led[2]] != CRGB::Black) {
+    if(!device_leds[i_device_led[2]]) {
       device_leds[i_device_led[2]] = getHueAsRGB(i_device_led[2], C_BLACK);
     }
   }
