@@ -45,7 +45,7 @@
 #include <digitalWriteFast.h>
 #include <millisDelay.h>
 #include <ESP32Servo.h>
-#include <FastLED.h>
+#include <Adafruit_NeoPXL8.h>
 #include <ezButton.h>
 
 // Forward declaration for use in all includes.
@@ -95,6 +95,10 @@ void sendDebug(const String& message) {
 }
 
 void setup() {
+  // Update all addressable LEDs to prevent stale LED states.
+  pstt_led_output.begin();
+  pstt_led_output.show();
+
   // Reduce CPU frequency to 160 MHz to save ~33% power compared to 240 MHz.
   // Alternatively set CPU to 80 MHz to save ~50% power compared to 240 MHz.
   // Do not set below 80 MHz as it will affect WiFi and other peripherals.
@@ -120,7 +124,6 @@ void setup() {
   for(uint8_t gpio_pin = 40; gpio_pin < 43; gpio_pin++) {
     PIN_FUNC_SELECT(IO_MUX_GPIO0_REG + (gpio_pin * 4), PIN_FUNC_GPIO);
   }
-
 
   // Get all special device preferences from NVS which may be needed for sensors.
   // This also loads the target configuration settings.
@@ -149,15 +152,6 @@ void setup() {
   pinModeFast(PSTT_STATUS_LED_PIN, OUTPUT);
   digitalWriteFast(PSTT_STATUS_LED_PIN, HIGH);
 
-  FastLED.addLeds<NEOPIXEL, PSTT_JEWEL_LED_PIN>(pstt_jewel_leds, JEWEL_LED_MAX).setCorrection(TypicalLEDStrip);
-  FastLED.setMaxRefreshRate(0); // Disable FastLED's blocking 2.5ms delay.
-
-  // Update all addressable LEDs to prevent stale LED states.
-  FastLED.show();
-
-  // Initialise the fastLED state update timer.
-  ms_fast_led.start(i_fast_led_delay);
-
   // Set target to ready state automatically on boot.
   setTargetAsReady();
 }
@@ -165,7 +159,6 @@ void setup() {
 // Loop logic dedicated to this device which handles all of the standard operations.
 void mainLoop() {
   // Get the current state of any input devices (toggles, buttons, and switches).
-
   switch_pstt.loop();
 
   // Check the target health and do appropriate actions if required.
@@ -212,6 +205,7 @@ void loop() {
 
   // Run checks on web-related tasks.
   webLoops();
+
   // (Re-)Start WiFi if the web server is not running.
   if(!b_httpd_started) {
     restartWireless();
@@ -219,10 +213,6 @@ void loop() {
 
   mainLoop(); // Continue on to the main loop.
 
-  // Update the addressable LEDs and restart the timer.
-  if(ms_fast_led.justFinished()) {
-    FastLED.show();
-
-    ms_fast_led.start(i_fast_led_delay);
-  }
+  // Update the addressable LEDs.
+  pstt_led_output.show();
 }

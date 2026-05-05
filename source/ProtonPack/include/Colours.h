@@ -51,8 +51,10 @@ enum colours : uint8_t {
   C_NAVY_BLUE,
   C_BLUE,
   C_PURPLE,
+  C_BLUEGREEN,
   C_REDGREEN,
   C_ORANGEPURPLE,
+  C_REDPURPLE,
   C_BLUEFADE,
   C_PASTEL,
   C_RAINBOW,
@@ -517,6 +519,33 @@ uint32_t getHue(uint8_t i_device, uint8_t i_colour, uint8_t i_brightness = 255, 
       i_output_colour = 192;
     break;
 
+    case C_BLUEGREEN:
+      // Alternate between blue (145) and green (96).
+      if(i_curr_colour[i_device] != 145 && i_curr_colour[i_device] != 96) {
+        i_curr_colour[i_device] = 145; // Reset if out of range.
+        i_output_colour = i_curr_colour[i_device];
+      }
+
+      if(!b_fade) {
+        i_count[i_device]++;
+
+        if(i_count[i_device] % i_cycle == 145) {
+          if(i_curr_colour[i_device] == 145) {
+            i_curr_colour[i_device] = 96;
+            i_output_colour = i_curr_colour[i_device];
+            i_count[i_device] = 1; // Reset counter.
+          }
+          else {
+            i_curr_colour[i_device] = 145;
+            i_output_colour = i_curr_colour[i_device];
+            i_count[i_device] = 1; // Reset counter.
+          }
+        }
+      }
+
+      i_saturation = 255;
+    break;
+
     case C_REDGREEN:
       // Alternate between red (0) and green (96).
       if(i_curr_colour[i_device] != 0 && i_curr_colour[i_device] != 96) {
@@ -562,6 +591,33 @@ uint32_t getHue(uint8_t i_device, uint8_t i_colour, uint8_t i_brightness = 255, 
           }
           else {
             i_curr_colour[i_device] = 15;
+            i_output_colour = i_curr_colour[i_device];
+            i_count[i_device] = 1; // Reset counter.
+          }
+        }
+      }
+
+      i_saturation = 255;
+    break;
+
+    case C_REDPURPLE:
+      // Alternate between orange (0) and purple (210).
+      if(i_curr_colour[i_device] != 0 && i_curr_colour[i_device] != 210) {
+        i_curr_colour[i_device] = 0; // Reset if out of range.
+        i_output_colour = i_curr_colour[i_device];
+      }
+
+      if(!b_fade) {
+        i_count[i_device]++;
+
+        if(i_count[i_device] % i_cycle == 0) {
+          if(i_curr_colour[i_device] == 0) {
+            i_curr_colour[i_device] = 210;
+            i_output_colour = i_curr_colour[i_device];
+            i_count[i_device] = 1; // Reset counter.
+          }
+          else {
+            i_curr_colour[i_device] = 0;
             i_output_colour = i_curr_colour[i_device];
             i_count[i_device] = 1; // Reset counter.
           }

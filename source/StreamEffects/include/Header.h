@@ -31,7 +31,29 @@
 #define DEVICE_LED_PIN 4
 #define DEVICE_MAX_LEDS 500 // Set a hard max for allocating the array of LEDs
 uint16_t i_num_leds = 250; // Default is 50 LEDs per meter, with a length of 5 meters (eg. 250)
-CRGB device_leds[DEVICE_MAX_LEDS];
+
+/*
+ * Adafruit LED declaration.
+ */
+Adafruit_NeoPixel device_led_output(DEVICE_MAX_LEDS, DEVICE_LED_PIN);
+
+struct DeviceLeds {
+  uint8_t index;
+
+  DeviceLeds& operator[](uint8_t i) {
+    index = i;
+    return *this;
+  }
+
+  DeviceLeds& operator=(uint32_t a) {
+    device_led_output.setPixelColor(index, a);
+    return *this;
+  }
+
+  explicit operator bool() { return device_led_output.getPixelColor(index); }
+};
+
+DeviceLeds device_leds;
 
 /*
  * Define Color Options & Timers

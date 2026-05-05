@@ -61,7 +61,7 @@ void printPartitions() {
 
 void ledsOff() {
   // Change all possible addressable LEDs to black.
-  fill_solid(device_leds, DEVICE_MAX_LEDS, CRGB::Black);
+  device_led_output.clear();
 }
 
 void initializePalettes() {
@@ -203,7 +203,7 @@ void animateLights() {
   // Parameters: LED array, number of LEDs, starting palette index, delta between LEDs, palette, brightness, blending mode.
   fill_palette(device_leds, i_num_leds, i_palette_start_index, 255 / i_num_leds, cp_StreamPalette, 255, LINEARBLEND);
 
-  // Handle LED ordering ordering as necessary.
+  // Handle LED ordering as necessary.
   switch(LED_COLOR_TYPE) {
     case LED_RGB:
     default:
@@ -211,14 +211,14 @@ void animateLights() {
     break;
     case LED_GRB:
       for(uint16_t i = 0; i < i_num_leds; i++) {
-        CRGB b_temp_colour = device_leds[i];
-        device_leds[i] = CRGB(b_temp_colour.g, b_temp_colour.r, b_temp_colour.b);
+        uint32_t b_temp_colour = device_led_output.getPixelColor(i);
+        device_led_output.setPixelColor(i, device_led_output.Color((uint8_t)(b_temp_colour >> 8), (uint8_t)(b_temp_colour >> 16), (uint8_t)(b_temp_colour >> 0)));
       }
     break;
     case LED_GBR:
       for(uint16_t i = 0; i < i_num_leds; i++) {
-        CRGB b_temp_colour = device_leds[i];
-        device_leds[i] = CRGB(b_temp_colour.g, b_temp_colour.b, b_temp_colour.r);
+        uint32_t b_temp_colour = device_led_output.getPixelColor(i);
+        device_led_output.setPixelColor(i, device_led_output.Color((uint8_t)(b_temp_colour >> 8), (uint8_t)(b_temp_colour >> 0), (uint8_t)(b_temp_colour >> 16)));
       }
     break;
   }

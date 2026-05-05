@@ -51,8 +51,10 @@ enum colours {
   C_NAVY_BLUE,
   C_BLUE,
   C_PURPLE,
+  C_BLUEGREEN,
   C_REDGREEN,
   C_ORANGEPURPLE,
+  C_REDPURPLE,
   C_PASTEL,
   C_RAINBOW,
   C_CUSTOM,
@@ -269,6 +271,36 @@ uint32_t getHue(uint8_t i_colour, uint8_t i_brightness = 255, uint8_t i_saturati
       i_output_colour = 192;
     break;
 
+    case C_BLUEGREEN:
+      // Alternate between blue (145) and green (96).
+      if(i_curr_colour != 145 && i_curr_colour != 96) {
+        i_curr_colour = 145; // Reset if out of range.
+      }
+
+      if(WAND_ACTION_STATUS == ACTION_IDLE) {
+        // Used to slow down colour transitions during the barrel fade effect.
+        if(WAND_BARREL_LED_COUNT == LEDS_5) {
+          i_cycle = 50;
+        }
+      }
+
+      i_count++;
+
+      if(i_count % i_cycle == 0) {
+        if(i_curr_colour == 96) {
+          i_curr_colour = 145;
+          i_count = 1; // Reset counter.
+        }
+        else {
+          i_curr_colour = 96;
+          i_count = 1; // Reset counter.
+        }
+      }
+
+      i_output_colour = i_curr_colour;
+      i_saturation = 255;
+    break;
+
     case C_REDGREEN:
       // Alternate between red (0) and green (96).
       if(i_curr_colour != 0 && i_curr_colour != 96) {
@@ -321,6 +353,36 @@ uint32_t getHue(uint8_t i_colour, uint8_t i_brightness = 255, uint8_t i_saturati
         }
         else {
           i_curr_colour = 15;
+          i_count = 1; // Reset counter.
+        }
+      }
+
+      i_output_colour = i_curr_colour;
+      i_saturation = 255;
+    break;
+
+    case C_REDPURPLE:
+      // Alternate between orange (0) and purple (210).
+      if(i_curr_colour != 0 && i_curr_colour != 210) {
+        i_curr_colour = 0; // Reset if out of range.
+      }
+
+      if(WAND_ACTION_STATUS == ACTION_IDLE) {
+        // Used to slow down colour transitions during the barrel fade effect.
+        if(WAND_BARREL_LED_COUNT == LEDS_5) {
+          i_cycle = 50;
+        }
+      }
+
+      i_count++;
+
+      if(i_count % i_cycle == 0) {
+        if(i_curr_colour == 0) {
+          i_curr_colour = 210;
+          i_count = 1; // Reset counter.
+        }
+        else {
+          i_curr_colour = 210;
           i_count = 1; // Reset counter.
         }
       }

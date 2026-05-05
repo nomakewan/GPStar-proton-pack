@@ -42,14 +42,30 @@ ezButton switch_pstt(PSTT_BUTTON); // Button for the PSTT. Used to manually chan
  * Jewel indicator LEDs.
  */
 #define JEWEL_LED_MAX 14 // The maximum number of indicator LEDs.
-CRGB pstt_jewel_leds[JEWEL_LED_MAX];
 
 /*
- * Delay for fastled to update the addressable LEDs.
+ * Adafruit LED declaration.
  */
-#define FAST_LED_UPDATE_MS 3
-uint8_t i_fast_led_delay = FAST_LED_UPDATE_MS;
-millisDelay ms_fast_led;
+int8_t led_pins[8] = { PSTT_JEWEL_LED_PIN, -1, -1, -1, -1, -1, -1, -1 };
+Adafruit_NeoPXL8 pstt_led_output((JEWEL_LED_MAX + 2), led_pins);
+
+struct PSTTLeds {
+  uint8_t index;
+
+  PSTTLeds& operator[](uint8_t i) {
+    index = i;
+    return *this;
+  }
+
+  PSTTLeds& operator=(uint32_t a) {
+    pstt_led_output.setPixelColor(index, a);
+    return *this;
+  }
+
+  explicit operator bool() { return pstt_led_output.getPixelColor(index); }
+};
+
+PSTTLeds pstt_jewel_leds;
 
 enum PSTT_TARGET_STATUS : uint8_t {
   PSTT_READY = 1,
