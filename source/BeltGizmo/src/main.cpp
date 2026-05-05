@@ -46,7 +46,7 @@
 
 // 3rd-Party Libraries
 #include <millisDelay.h>
-#include <FastLED.h>
+#include <Adafruit_NeoPXL8.h>
 #include <esp_system.h>
 #include <nvs_flash.h>
 
@@ -129,7 +129,7 @@ void AnimationTask(void *parameter) {
     animateLights();
 
     // Update the device LEDs and restart the timer.
-    FastLED.show();
+    device_led_output.show();
 
     vTaskDelay(16 / portTICK_PERIOD_MS); // 16ms delay
   }
@@ -273,7 +273,7 @@ void WiFiSetupTask(void *parameter) {
       device_leds[0] = getHueAsGBR(PRIMARY_LED, C_RED, 255);
     break;
   }
-  FastLED.show();
+  device_led_output.show();
 
   // Begin by setting up WiFi as a prerequisite to all else.
   if(startWiFi()) {
@@ -291,7 +291,7 @@ void WiFiSetupTask(void *parameter) {
           device_leds[0] = getHueAsGBR(PRIMARY_LED, C_BLUE, 255);
         break;
       }
-      FastLED.show();
+      device_led_output.show();
     }
 
     // Start the local web server.
@@ -306,8 +306,8 @@ void WiFiSetupTask(void *parameter) {
   vTaskDelay(200 / portTICK_PERIOD_MS); // 200ms delay
 
   // Clear LED once we have the AP and web server started.
-  device_leds[0] = CRGB::Black;
-  FastLED.show();
+  device_led_output.clear();
+  device_led_output.show();
 
   #if defined(DEBUG_TASK_TO_CONSOLE)
     // Get the stack high water mark for optimizing bytes allocated.
@@ -321,13 +321,9 @@ void WiFiSetupTask(void *parameter) {
 }
 
 void setup() {
-  // Device RGB LEDs for use when needed.
-  FastLED.addLeds<NEOPIXEL, DEVICE_LED_PIN>(device_leds, DEVICE_MAX_LEDS).setCorrection(TypicalLEDStrip);
-  FastLED.setMaxRefreshRate(0); // Disable FastLED's blocking 2.5ms delay.
-  FastLED.setBrightness(128); // Use a lower brightness (50%) to save power.
-
   // Update all addressable LEDs to prevent stale LED states.
-  FastLED.show();
+  device_led_output.begin();
+  device_led_output.show();
 
   Serial.begin(115200); // Serial monitor via USB connection.
 

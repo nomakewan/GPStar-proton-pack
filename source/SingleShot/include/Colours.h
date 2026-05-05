@@ -58,6 +58,24 @@ enum colours {
   C_RAINBOW
 };
 
+inline uint32_t maximizeBrightness(uint32_t rgb, uint8_t limit = 255)  {
+  uint8_t red = (uint8_t)(rgb >> 16);
+  uint8_t green = (uint8_t)(rgb >> 8);
+  uint8_t blue = (uint8_t)(rgb >> 0);
+  uint8_t max = red;
+  if(green > max) max = green;
+  if(blue > max) max = blue;
+
+  // stop div/0 when color is black
+  if(max > 0) {
+    uint16_t factor = ((uint16_t)(limit) * 256) / max;
+    red =   (red   * factor) / 256;
+    green = (green * factor) / 256;
+    blue =  (blue  * factor) / 256;
+  }
+  return system_led_output.Color(red, green, blue);
+}
+
 uint8_t getBrightness(uint8_t i_percent = 100) {
   // Brightness here is a percentage, to be converted to a range 0-255.
   if(i_percent > 100) {
@@ -66,16 +84,11 @@ uint8_t getBrightness(uint8_t i_percent = 100) {
   return (uint8_t) ((255 * i_percent) / 100);
 }
 
-// Converts FastLED 8-bit color to Adafruit 32-bit color.
-uint16_t getHue16(uint8_t hue) {
-  return map(hue, 0, 255, 0, 65535);
-}
-
 // Adafruit implementation of FastLED nscale8 function.
-uint32_t nscale8(uint32_t color, uint8_t scale) {
-  uint8_t r = (uint8_t)(color >> 16);
-  uint8_t g = (uint8_t)(color >>  8);
-  uint8_t b = (uint8_t)color;
+uint32_t nscale8(uint32_t colour, uint8_t scale) {
+  uint8_t r = (uint8_t)(colour >> 16);
+  uint8_t g = (uint8_t)(colour >>  8);
+  uint8_t b = (uint8_t)colour;
 
   r = (r * scale) >> 8;
   g = (g * scale) >> 8;
@@ -83,6 +96,48 @@ uint32_t nscale8(uint32_t color, uint8_t scale) {
 
   // This function should only ever be used on correctly-ordered colors, so always output RGB.
   return system_led_output.Color(r, g, b);
+}
+
+// Adafruit implementation of FastLED nscale8_video function.
+uint32_t nscale8_video(uint32_t colour, uint8_t scale) {
+  uint8_t nonzeroscale = (scale != 0) ? 1 : 0;
+  uint8_t r = (uint8_t)(colour >> 16);
+  uint8_t g = (uint8_t)(colour >>  8);
+  uint8_t b = (uint8_t)colour;
+
+  r = (r == 0) ? 0 : ((r * scale) >> 8) + nonzeroscale;
+  g = (g == 0) ? 0 : ((g * scale) >> 8) + nonzeroscale;
+  b = (b == 0) ? 0 : ((b * scale) >> 8) + nonzeroscale;
+
+  // This function should only ever be used on correctly-ordered colors, so always output RGB.
+  return system_led_output.Color(r, g, b);
+}
+
+// Adafruit implementation of FastLED blur1d function.
+#ifdef ESP32
+void blur1d(Adafruit_NeoPXL8 &leds, uint16_t numLeds, uint8_t blurAmount) {
+#else
+void blur1d(Adafruit_NeoPixel &leds, uint16_t numLeds, uint8_t blurAmount) {
+#endif
+  uint8_t keep = 255 - blurAmount;
+  uint8_t seep = blurAmount >> 1;
+  uint32_t carryover = leds.Color(0,0,0);
+  for(uint16_t i = 0; i < numLeds; ++i) {
+    uint32_t cur = leds.getPixelColor(i);
+    uint32_t part = cur;
+    part = nscale8(part, seep);
+    cur = nscale8(cur, keep);
+    cur += carryover;
+    if(i)
+      leds.setPixelColor(i-1, (leds.getPixelColor(i-1) + part)); //leds[i - 1] += part;
+    leds.setPixelColor(i, cur); //leds[i] = cur;
+    carryover = part;
+  }
+}
+
+// Converts FastLED 8-bit color to Adafruit 32-bit color.
+uint16_t getHue16(uint8_t hue) {
+  return map(hue, 0, 255, 0, 65535);
 }
 
 // Special values for colour cycles: current hue (colour) and when to change colour.

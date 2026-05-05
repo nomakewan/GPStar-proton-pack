@@ -97,6 +97,57 @@ uint8_t getBrightness(uint8_t i_percent = 100) {
   return (uint8_t) ((255 * i_percent) / 100);
 }
 
+// Adafruit implementation of FastLED nscale8 function.
+uint32_t nscale8(uint32_t colour, uint8_t scale) {
+  uint8_t r = (uint8_t)(colour >> 16);
+  uint8_t g = (uint8_t)(colour >>  8);
+  uint8_t b = (uint8_t)colour;
+
+  r = (r * scale) >> 8;
+  g = (g * scale) >> 8;
+  b = (b * scale) >> 8;
+
+  // This function should only ever be used on correctly-ordered colors, so always output RGB.
+  return pack_led_output.Color(r, g, b);
+}
+
+// Adafruit implementation of FastLED nscale8_video function.
+uint32_t nscale8_video(uint32_t colour, uint8_t scale) {
+  uint8_t nonzeroscale = (scale != 0) ? 1 : 0;
+  uint8_t r = (uint8_t)(colour >> 16);
+  uint8_t g = (uint8_t)(colour >>  8);
+  uint8_t b = (uint8_t)colour;
+
+  r = (r == 0) ? 0 : ((r * scale) >> 8) + nonzeroscale;
+  g = (g == 0) ? 0 : ((g * scale) >> 8) + nonzeroscale;
+  b = (b == 0) ? 0 : ((b * scale) >> 8) + nonzeroscale;
+
+  // This function should only ever be used on correctly-ordered colors, so always output RGB.
+  return pack_led_output.Color(r, g, b);
+}
+
+// Adafruit implementation of FastLED blur1d function.
+#ifdef ESP32
+void blur1d(Adafruit_NeoPXL8 &leds, uint16_t numLeds, uint8_t blurAmount) {
+#else
+void blur1d(Adafruit_NeoPixel &leds, uint16_t numLeds, uint8_t blurAmount) {
+#endif
+  uint8_t keep = 255 - blurAmount;
+  uint8_t seep = blurAmount >> 1;
+  uint32_t carryover = leds.Color(0,0,0);
+  for(uint16_t i = 0; i < numLeds; ++i) {
+    uint32_t cur = leds.getPixelColor(i);
+    uint32_t part = cur;
+    part = nscale8(part, seep);
+    cur = nscale8(cur, keep);
+    cur += carryover;
+    if(i)
+      leds.setPixelColor(i-1, (leds.getPixelColor(i-1) + part)); //leds[i - 1] += part;
+    leds.setPixelColor(i, cur); //leds[i] = cur;
+    carryover = part;
+  }
+}
+
 uint16_t getHue16(uint8_t hue) {
   return map(hue, 0, 255, 0, 65535);
 }

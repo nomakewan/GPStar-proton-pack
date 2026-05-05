@@ -59,7 +59,7 @@ void printPartitions() {
 
 void ledsOff() {
   // Change all possible addressable LEDs to black.
-  fill_solid(device_leds, DEVICE_MAX_LEDS, CRGB::Black);
+  device_led_output.clear();
 }
 
 // Helper: compute fixed-point scaled position (Q16) from 16-bit phase.
@@ -137,7 +137,7 @@ void animateLights() {
   ledsOff(); // Clear LEDs before updating animation.
 
   // Compute a full-bright CRGB once and scale per-LED with nscale8_video.
-  CRGB baseColor;
+  uint32_t baseColor;
   switch(LED_COLOR_TYPE) {
     case LED_GBR:
     default:
@@ -160,19 +160,19 @@ void animateLights() {
   uint8_t i_weightB = i_frac;       // Weight for i_index + 1
 
   // Apply weighted colours (nscale8_video expects 0..255)
-  CRGB cA = baseColor; cA.nscale8_video(i_weightA);
-  device_leds[i_index] = cA;
+  uint32_t cA = baseColor;
+  device_leds[i_index] =  nscale8_video(cA, i_weightA);
 
   uint8_t i_indexB = i_index + 1;
   if(i_indexB >= i_num_leds) {
     i_indexB = 0;
   }
-  CRGB cB = baseColor; cB.nscale8_video(i_weightB);
-  device_leds[i_indexB] = cB;
+  uint32_t cB = baseColor;
+  device_leds[i_indexB] = nscale8_video(cB, i_weightB);
 
   // Slight blur to soften stepping (tune i_blurAmount)
   const uint8_t i_blur_amount = 32;
-  blur1d(device_leds, i_num_leds, i_blur_amount);
+  blur1d(device_led_output, i_num_leds, i_blur_amount);
 
   // IMPORTANT: advance the 16-bit phase so the visible (high) byte moves by i_animation_step.
   // Shift left 8 so visible phase increments by i_animation_step each frame.

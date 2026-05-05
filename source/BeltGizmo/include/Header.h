@@ -31,7 +31,30 @@
 #define DEVICE_LED_PIN 4
 #define DEVICE_MAX_LEDS 11 // 10 "nixie" tubes + 1 "E" bulb
 uint8_t i_num_leds = 8; // Default to 7 nixie tubes + 1 "E" bulb
-CRGB device_leds[DEVICE_MAX_LEDS];
+
+/*
+ * Adafruit LED declaration.
+ */
+int8_t led_pins[8] = { DEVICE_LED_PIN, -1, -1, -1, -1, -1, -1, -1 };
+Adafruit_NeoPXL8 device_led_output((DEVICE_MAX_LEDS + 2), led_pins);
+
+struct DeviceLeds {
+  uint8_t index;
+
+  DeviceLeds& operator[](uint8_t i) {
+    index = i;
+    return *this;
+  }
+
+  DeviceLeds& operator=(uint32_t a) {
+    device_led_output.setPixelColor(index, a);
+    return *this;
+  }
+
+  explicit operator bool() { return device_led_output.getPixelColor(index); }
+};
+
+DeviceLeds device_leds;
 
 /*
  * Define Color Options & Timers
