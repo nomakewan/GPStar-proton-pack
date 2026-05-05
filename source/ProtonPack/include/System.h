@@ -3028,13 +3028,14 @@ void cyclotron84LightOn(uint8_t cLed) {
     i_colour_scheme = C_HASLAB;
   }
 
-  pack_leds[cLed] = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
+  uint32_t i_puck_colour = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
+  pack_leds[cLed] = i_puck_colour;
   i_cyclotron_led_value[cLed - i_cyclotron_led_start] = i_brightness;
 
   // Turn on the other 2 LEDs if we are allowing 3 to light up.
   if(!b_cyclotron_single_led) {
     for(uint8_t i = 1; i <= i_led_array_width; i++) {
-      pack_leds[cLed + i] = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
+      pack_leds[cLed + i] = i_puck_colour;
       i_cyclotron_led_value[cLed + i - i_cyclotron_led_start] = i_brightness;
 
       uint8_t cLedTemp = cLed; // Create new temporary variable for the negative side.
@@ -3046,7 +3047,7 @@ void cyclotron84LightOn(uint8_t cLed) {
         cLedTemp = cLed - i;
       }
 
-      pack_leds[cLedTemp] = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
+      pack_leds[cLedTemp] = i_puck_colour;
       i_cyclotron_led_value[cLedTemp - i_cyclotron_led_start] = i_brightness;
     }
   }
@@ -3582,15 +3583,19 @@ void cyclotron1984Alarm() {
   */
 
   if(!b_fade_cyclotron_led) {
-    pack_leds[led1] = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
-    pack_leds[led2] = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
-    pack_leds[led3] = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
-    pack_leds[led4] = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
+    uint32_t i_puck_colour_1 = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
+    uint32_t i_puck_colour_2 = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
+    uint32_t i_puck_colour_3 = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
+    uint32_t i_puck_colour_4 = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
+    pack_leds[led1] = i_puck_colour_1;
+    pack_leds[led2] = i_puck_colour_2;
+    pack_leds[led3] = i_puck_colour_3;
+    pack_leds[led4] = i_puck_colour_4;
 
     // Turn on all the other cyclotron LEDs if required.
     if(!b_cyclotron_single_led) {
       for(uint8_t i = 1; i <= i_led_array_width; i++) {
-        pack_leds[led1 + i] = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
+        pack_leds[led1 + i] = i_puck_colour_1;
 
         if(led1 - i < i_cyclotron_led_start) {
           led1 = i_pack_num_leds - i_nfilter_jewel_leds - 1;
@@ -3599,8 +3604,8 @@ void cyclotron1984Alarm() {
           led1 = led1 - i;
         }
 
-        pack_leds[led1] = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
-        pack_leds[led2 + i] = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
+        pack_leds[led1] = i_puck_colour_1;
+        pack_leds[led2 + i] = i_puck_colour_2;
 
         if(led2 - i < i_cyclotron_led_start) {
           led2 = i_pack_num_leds - i_nfilter_jewel_leds - 1;
@@ -3609,8 +3614,8 @@ void cyclotron1984Alarm() {
           led2 = led2 - i;
         }
 
-        pack_leds[led2] = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
-        pack_leds[led3 + i] = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
+        pack_leds[led2] = i_puck_colour_2;
+        pack_leds[led3 + i] = i_puck_colour_3;
 
         if(led3 - i < i_cyclotron_led_start) {
           led3 = i_pack_num_leds - i_nfilter_jewel_leds - 1;
@@ -3619,8 +3624,8 @@ void cyclotron1984Alarm() {
           led3 = led3 - i;
         }
 
-        pack_leds[led3] = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
-        pack_leds[led4 + i] = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
+        pack_leds[led3] = i_puck_colour_3;
+        pack_leds[led4 + i] = i_puck_colour_4;
 
         if(led4 - i < i_cyclotron_led_start) {
           led4 = i_pack_num_leds - i_nfilter_jewel_leds - 1;
@@ -3629,7 +3634,7 @@ void cyclotron1984Alarm() {
           led4 = led4 - i;
         }
 
-        pack_leds[led4] = getHueAsRGB(CYCLOTRON_OUTER, i_colour_scheme, i_brightness);
+        pack_leds[led4] = i_puck_colour_4;
       }
     }
   }
