@@ -216,40 +216,40 @@ Adafruit_NeoPixel vent_led_output(VENT_LEDS_MAX, TOP_LED_PIN);
 struct WandLeds {
   uint8_t index;
 
-  WandLeds& operator[](uint8_t i) {
+  inline WandLeds& operator[](uint8_t i) {
     index = i;
     return *this;
   }
 
-  WandLeds& operator=(uint32_t a) {
+  inline WandLeds& operator=(uint32_t a) {
     wand_led_output.setPixelColor(index, a);
     return *this;
   }
 
-  explicit operator bool() { return wand_led_output.getPixelColor(index); }
+  inline explicit operator bool() { return wand_led_output.getPixelColor(index); }
 };
 
 struct VentLeds {
   uint8_t index;
 
-  VentLeds& operator[](uint8_t i) {
+  inline VentLeds& operator[](uint8_t i) {
     index = i;
     return *this;
   }
 #ifdef ESP32
-  VentLeds& operator=(uint32_t a) {
+  inline VentLeds& operator=(uint32_t a) {
     wand_led_output.setPixelColor(index+i_max_leds_per_pin, a);
     return *this;
   }
 
-  explicit operator bool() { return wand_led_output.getPixelColor(index+i_max_leds_per_pin); }
+  inline explicit operator bool() { return wand_led_output.getPixelColor(index+i_max_leds_per_pin); }
 #else
-  VentLeds& operator=(uint32_t a) {
+  inline VentLeds& operator=(uint32_t a) {
     vent_led_output.setPixelColor(index, a);
     return *this;
   }
 
-  explicit operator bool() { return vent_led_output.getPixelColor(index); }
+  inline explicit operator bool() { return vent_led_output.getPixelColor(index); }
 #endif
 };
 

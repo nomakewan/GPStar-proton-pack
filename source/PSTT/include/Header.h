@@ -52,17 +52,17 @@ Adafruit_NeoPXL8 pstt_led_output((JEWEL_LED_MAX + 2), led_pins);
 struct PSTTLeds {
   uint8_t index;
 
-  PSTTLeds& operator[](uint8_t i) {
+  inline PSTTLeds& operator[](uint8_t i) {
     index = i;
     return *this;
   }
 
-  PSTTLeds& operator=(uint32_t a) {
+  inline PSTTLeds& operator=(uint32_t a) {
     pstt_led_output.setPixelColor(index, a);
     return *this;
   }
 
-  explicit operator bool() { return pstt_led_output.getPixelColor(index); }
+  inline explicit operator bool() { return pstt_led_output.getPixelColor(index); }
 };
 
 PSTTLeds pstt_jewel_leds;

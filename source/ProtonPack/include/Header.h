@@ -199,40 +199,40 @@ Adafruit_NeoPixel cake_led_output(i_max_inner_cyclotron_leds, CYCLOTRON_LED_PIN)
 struct PackLeds {
   uint8_t index;
 
-  PackLeds& operator[](uint8_t i) {
+  inline PackLeds& operator[](uint8_t i) {
     index = i;
     return *this;
   }
 
-  PackLeds& operator=(uint32_t a) {
+  inline PackLeds& operator=(uint32_t a) {
     pack_led_output.setPixelColor(index, a);
     return *this;
   }
 
-  explicit operator bool() { return pack_led_output.getPixelColor(index); }
+  inline explicit operator bool() { return pack_led_output.getPixelColor(index); }
 };
 
 struct CakeLeds {
   uint8_t index;
 
-  CakeLeds& operator[](uint8_t i) {
+  inline CakeLeds& operator[](uint8_t i) {
     index = i;
     return *this;
   }
 #ifdef ESP32
-  CakeLeds& operator=(uint32_t a) {
+  inline CakeLeds& operator=(uint32_t a) {
     pack_led_output.setPixelColor(index+i_max_leds_per_pin, a);
     return *this;
   }
 
-  explicit operator bool() { return pack_led_output.getPixelColor(index+i_max_leds_per_pin); }
+  inline explicit operator bool() { return pack_led_output.getPixelColor(index+i_max_leds_per_pin); }
 #else
-  CakeLeds& operator=(uint32_t a) {
+  inline CakeLeds& operator=(uint32_t a) {
     cake_led_output.setPixelColor(index, a);
     return *this;
   }
 
-  explicit operator bool() { return cake_led_output.getPixelColor(index); }
+  inline explicit operator bool() { return cake_led_output.getPixelColor(index); }
 #endif
 };
 

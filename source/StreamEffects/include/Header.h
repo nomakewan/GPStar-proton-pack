@@ -40,17 +40,17 @@ Adafruit_NeoPixel device_led_output(DEVICE_MAX_LEDS, DEVICE_LED_PIN);
 struct DeviceLeds {
   uint8_t index;
 
-  DeviceLeds& operator[](uint8_t i) {
+  inline DeviceLeds& operator[](uint8_t i) {
     index = i;
     return *this;
   }
 
-  DeviceLeds& operator=(uint32_t a) {
+  inline DeviceLeds& operator=(uint32_t a) {
     device_led_output.setPixelColor(index, a);
     return *this;
   }
 
-  explicit operator bool() { return device_led_output.getPixelColor(index); }
+  inline explicit operator bool() { return device_led_output.getPixelColor(index); }
 };
 
 DeviceLeds device_leds;
